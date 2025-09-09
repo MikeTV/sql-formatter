@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using SQL.Formatter.Core;
 
 namespace SQL.Formatter.Language
@@ -267,6 +268,49 @@ namespace SQL.Formatter.Language
 
         public TSqlFormatter(FormatConfig cfg) : base(cfg)
         {
+        }
+
+        protected override Token TokenOverride(Token token)
+        {
+            if (token.Type == TokenTypes.OPEN_PAREN && token.Value.Equals("BEGIN", StringComparison.OrdinalIgnoreCase))
+            {
+                var next = TokenLookAhead();
+                if (IsTransactionBegin(next))
+                {
+                    return new Token(TokenTypes.RESERVED, token.Value, token.Regex, token.WhitespaceBefore);
+                }
+            }
+
+            return token;
+        }
+
+        private bool IsTransactionBegin(Token next)
+        {
+            if (next == null)
+            {
+                return false;
+            }
+
+            var nextVal = next.Value.ToUpperInvariant();
+            if (nextVal == "TRAN" || nextVal == "TRANSACTION")
+            {
+                return true;
+            }
+
+            if (nextVal == "DISTRIBUTED")
+            {
+                var second = TokenLookAhead(2);
+                if (second != null)
+                {
+                    var secondVal = second.Value.ToUpperInvariant();
+                    if (secondVal == "TRAN" || secondVal == "TRANSACTION")
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }
