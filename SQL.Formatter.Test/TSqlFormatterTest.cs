@@ -171,5 +171,23 @@ namespace SQL.Formatter.Test
 
             Assert.Equal(expected, Formatter.Format(sql));
         }
+
+        [Fact]
+        public void DoesNotTreatBeginTranAsBlock()
+        {
+            var sql = "BEGIN TRAN\nSELECT 1";
+            var expected = "BEGIN TRAN\nSELECT\n  1";
+
+            Assert.Equal(expected, Formatter.Format(sql));
+        }
+
+        [Fact]
+        public void DoesNotTreatBeginDistributedTranAsBlock()
+        {
+            var sql = "BEGIN DISTRIBUTED TRAN\nSELECT 1";
+            var expected = "BEGIN DISTRIBUTED TRAN\nSELECT\n  1";
+
+            Assert.Equal(expected, Formatter.Format(sql));
+        }
     }
 }
