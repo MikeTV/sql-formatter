@@ -235,6 +235,9 @@ namespace SQL.Formatter.Language
                 "FULL OUTER JOIN",
                 "CROSS JOIN"};
 
+        /// <summary>
+        /// Builds the T-SQL dialect configuration, including BEGIN..END block delimiters.
+        /// </summary>
         public override DialectConfig DoDialectConfig()
         {
             return DialectConfig.Builder()
@@ -249,7 +252,7 @@ namespace SQL.Formatter.Language
                         StringLiteral.SingleQuote,
                         StringLiteral.BackQuote,
                         StringLiteral.Bracket})
-                .OpenParens(new List<string> { "(", "CASE" })
+                .OpenParens(new List<string> { "(", "CASE", "BEGIN" })
                 .CloseParens(new List<string> { ")", "END" })
                 .IndexedPlaceholderTypes(new List<string>())
                 .NamedPlaceholderTypes(new List<string> { "@" })

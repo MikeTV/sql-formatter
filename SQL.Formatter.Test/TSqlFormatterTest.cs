@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using SQL.Formatter.Core;
 using SQL.Formatter.Language;
 using SQL.Formatter.Test.Behavior;
 using SQL.Formatter.Test.Feature;
@@ -145,6 +146,30 @@ namespace SQL.Formatter.Test
                         { "var name1", "'var value1'"},
                         { "var name2", "'var value2'"},
                     }));
+        }
+
+        [Fact]
+        public void TokenizerTreatsBeginEndAsParentheses()
+        {
+            var tokenizer = new TSqlFormatter(FormatConfig.Builder().Build()).Tokenizer();
+            var tokens = tokenizer.Tokenize("BEGIN SELECT 1 END");
+
+            Assert.Equal(TokenTypes.OPEN_PAREN, tokens.Get(0).Type);
+            Assert.Equal(TokenTypes.CLOSE_PAREN, tokens.Get(tokens.Size() - 1).Type);
+        }
+
+        [Fact]
+        public void FormatsNestedBeginEndBlocks()
+        {
+            var sql = "BEGIN BEGIN SELECT 1 END END";
+            var expected = "BEGIN\n" +
+                           "  BEGIN\n" +
+                           "    SELECT\n" +
+                           "      1\n" +
+                           "  END\n" +
+                           "END";
+
+            Assert.Equal(expected, Formatter.Format(sql));
         }
     }
 }
