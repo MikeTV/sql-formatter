@@ -188,6 +188,28 @@ namespace SQL.Formatter.Test
             var expected = "BEGIN DISTRIBUTED TRAN\nSELECT\n  1";
 
             Assert.Equal(expected, Formatter.Format(sql));
+          
+        [Fact]
+        public void FormatsCreateProcedureDefinition()
+        {
+            Assert.Equal(
+                "CREATE PROCEDURE\n"
+                + "  test AS\n"
+                + "SELECT\n"
+                + "  1;",
+                Formatter.Format("CREATE PROCEDURE test AS SELECT 1;"));
+        }
+
+        [Fact]
+        public void FormatsAlterProcedureDefinition()
+        {
+            Assert.Equal(
+                "ALTER PROCEDURE\n"
+                + "  test AS\n"
+                + "SELECT\n"
+                + "  1;",
+                Formatter.Format("ALTER PROCEDURE test AS SELECT 1;"));
+
         }
     }
 }
