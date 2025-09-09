@@ -30,7 +30,7 @@ namespace SQL.Formatter.Core
 
         public Tokenizer Tokenizer()
         {
-            return new Tokenizer(DoDialectConfig());
+            return new Tokenizer(DoDialectConfig(), _cfg.QuerySeparators);
         }
 
         protected virtual Token TokenOverride(Token token)
@@ -109,7 +109,7 @@ namespace SQL.Formatter.Core
                 {
                     formattedQuery = FormatWithoutSpaces(token, formattedQuery);
                 }
-                else if (token.Value.Equals(";"))
+                else if (token.Type == TokenTypes.QUERY_SEPARATOR || token.Value.Equals(";"))
                 {
                     formattedQuery = FormatQuerySeparator(token, formattedQuery);
                 }
@@ -248,12 +248,25 @@ namespace SQL.Formatter.Core
             return query + Show(token) + " ";
         }
 
+        /// <summary>
+        /// Resets indentation and appends the configured spacing after a statement delimiter
+        /// such as ';' or custom separators like 'GO'.
+        /// </summary>
         protected virtual string FormatQuerySeparator(Token token, string query)
         {
             _indentation.ResetIndentation();
-            return query.TrimEnd()
+            var before = token.Type == TokenTypes.QUERY_SEPARATOR
+                ? AddNewline(query)
+                : query.TrimEnd();
+            var lines = _cfg.LinesBetweenQueries == default ? 1 : _cfg.LinesBetweenQueries;
+            if (token.Type == TokenTypes.QUERY_SEPARATOR)
+            {
+                lines += 1;
+            }
+
+            return before
                 + Show(token)
-                + Utils.Repeat("\n", _cfg.LinesBetweenQueries == default ? 1 : _cfg.LinesBetweenQueries);
+                + Utils.Repeat("\n", lines);
         }
 
         protected virtual string Show(Token token)

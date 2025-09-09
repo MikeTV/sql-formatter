@@ -28,8 +28,15 @@ namespace SQL.Formatter.Core
         private readonly Regex _indexedPlaceholderPattern;
         private readonly Regex _indentNamedPlaceholderPattern;
         private readonly Regex _stringNamedPlaceholderPattern;
+        private readonly Regex _querySeparatorPattern;
 
-        public Tokenizer(DialectConfig cfg)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Tokenizer"/> class using the provided dialect
+        /// configuration and custom query separators.
+        /// </summary>
+        /// <param name="cfg">Dialect specific configuration.</param>
+        /// <param name="querySeparators">Tokens that delimit separate SQL queries, such as GO.</param>
+        public Tokenizer(DialectConfig cfg, List<string> querySeparators)
         {
             _numberPattern = new Regex(
                 "^((-\\s*)?[0-9]+(\\.[0-9]+)?([eE]-?[0-9]+(\\.[0-9]+)?)?|0x[0-9a-fA-F]+|0b[01]+)\\b");
@@ -74,6 +81,10 @@ namespace SQL.Formatter.Core
                 RegexUtil.CreatePlaceholderRegexPattern(
                     new JSLikeList<string>(cfg.NamedPlaceholderTypes),
                     RegexUtil.CreateStringPattern(new JSLikeList<string>(cfg.StringTypes)));
+
+            _querySeparatorPattern = querySeparators != null && querySeparators.Any()
+                ? new Regex(RegexUtil.CreateReservedWordRegex(new JSLikeList<string>(querySeparators)))
+                : null;
         }
 
         public JSLikeList<Token> Tokenize(string input)
@@ -113,6 +124,7 @@ namespace SQL.Formatter.Core
                 () => GetCloseParenToken(input),
                 () => GetPlaceholderToken(input),
                 () => GetNumberToken(input),
+                () => GetQuerySeparatorToken(input),
                 () => GetReservedWordToken(input, previousToken),
                 () => GetWordToken(input),
                 () => GetOperatorToken(input));
@@ -193,6 +205,14 @@ namespace SQL.Formatter.Core
         private Token GetNumberToken(string input)
         {
             return GetTokenOnFirstMatch(input, TokenTypes.NUMBER, _numberPattern);
+        }
+
+        /// <summary>
+        /// Attempts to tokenize configured query separator keywords such as GO.
+        /// </summary>
+        private Token GetQuerySeparatorToken(string input)
+        {
+            return GetTokenOnFirstMatch(input, TokenTypes.QUERY_SEPARATOR, _querySeparatorPattern);
         }
 
         private Token GetOperatorToken(string input)

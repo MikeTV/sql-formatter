@@ -146,5 +146,17 @@ namespace SQL.Formatter.Test
                         { "var name2", "'var value2'"},
                     }));
         }
+
+        [Fact]
+        public void FormatsQueriesSeparatedByGo()
+        {
+            var sql = "SELECT 1\nGO\nSELECT 2";
+            var expected = "SELECT\n" +
+                            "  1\n" +
+                            "GO\n" +
+                            "SELECT\n" +
+                            "  2";
+            Assert.Equal(expected, Formatter.Format(sql));
+        }
     }
 }

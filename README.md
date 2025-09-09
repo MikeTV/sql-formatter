@@ -9,7 +9,6 @@ This repository contains the C# port of the popular [Java SQL formatter](https:/
 This does not support:
 
 - Stored procedures.
-- Changing of the delimiter type to something else than ;.
 
 # Usage
 
@@ -50,6 +49,7 @@ SqlFormatter.Format("SELECT * FROM tbl",
     .LinesBetweenQueries(2) // Defaults to 1
     .MaxColumnLength(100) // Defaults to 50
     .Params(new List<string>{"a", "b", "c"}) // Dictionary or List. See Placeholders replacement.
+    .QuerySeparators(new List<string>{"GO"}) // Defaults to ["GO"]
     .Build());
 );
 ```
