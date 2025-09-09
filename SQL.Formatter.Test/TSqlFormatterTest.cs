@@ -146,5 +146,27 @@ namespace SQL.Formatter.Test
                         { "var name2", "'var value2'"},
                     }));
         }
+
+        [Fact]
+        public void FormatsCreateProcedureDefinition()
+        {
+            Assert.Equal(
+                "CREATE PROCEDURE\n"
+                + "  test AS\n"
+                + "SELECT\n"
+                + "  1;",
+                Formatter.Format("CREATE PROCEDURE test AS SELECT 1;"));
+        }
+
+        [Fact]
+        public void FormatsAlterProcedureDefinition()
+        {
+            Assert.Equal(
+                "ALTER PROCEDURE\n"
+                + "  test AS\n"
+                + "SELECT\n"
+                + "  1;",
+                Formatter.Format("ALTER PROCEDURE test AS SELECT 1;"));
+        }
     }
 }

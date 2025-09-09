@@ -196,8 +196,11 @@ namespace SQL.Formatter.Language
             new List<string>{
                 "ADD",
                 "ALTER COLUMN",
+                // Recognize procedure definition clauses as independent statements
+                "ALTER PROCEDURE",
                 "ALTER TABLE",
                 "CASE",
+                "CREATE PROCEDURE",
                 "DELETE FROM",
                 "END",
                 "EXCEPT",
