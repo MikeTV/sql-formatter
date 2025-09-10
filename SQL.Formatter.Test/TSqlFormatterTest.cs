@@ -168,7 +168,8 @@ namespace SQL.Formatter.Test
                            "      1\n" +
                            "  END\n" +
                            "END";
-
+            Assert.Equal(expected, Formatter.Format(sql));
+        }
         public void FormatsQueriesSeparatedByGo()
         {
             var sql = "SELECT 1\nGO\nSELECT 2";
@@ -200,6 +201,8 @@ namespace SQL.Formatter.Test
             var sql = "BEGIN TRAN\nSELECT 1";
             var expected = "BEGIN TRAN\nSELECT\n  1";
 
+            Assert.Equal(expected, Formatter.Format(sql));
+        }
         public void PlacesGoOnItsOwnLineEvenWithoutLineBreaks()
         {
             var sql = "SELECT 1 GO SELECT 2";
@@ -274,7 +277,7 @@ namespace SQL.Formatter.Test
                            + "  );";
             Assert.Equal(expected, Formatter.Format(sql));
         }
-=======
+
         public void HandlesLowercaseAndMixedCaseGo()
         {
             var sql = "SELECT 1\n" +
