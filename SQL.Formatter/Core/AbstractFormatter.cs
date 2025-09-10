@@ -250,23 +250,33 @@ namespace SQL.Formatter.Core
 
         /// <summary>
         /// Resets indentation and appends the configured spacing after a statement delimiter
-        /// such as ';' or custom separators like 'GO'.
+        /// such as ';' or custom separators like 'GO'. Inline separators (e.g., ';') are kept on
+        /// the same line; non-inline separators (e.g., 'GO') are placed on their own line.
         /// </summary>
         protected virtual string FormatQuerySeparator(Token token, string query)
         {
             _indentation.ResetIndentation();
-            var before = token.Type == TokenTypes.QUERY_SEPARATOR
-               ? AddNewline(query)
-               : query.TrimEnd();
+
+            var isInline = IsInlineSeparator(token.Value);
+            var before = isInline ? query.TrimEnd() : AddNewline(query);
+
             var lines = _cfg.LinesBetweenQueries == default ? 1 : _cfg.LinesBetweenQueries;
-            if (token.Type == TokenTypes.QUERY_SEPARATOR)
+            if (!isInline)
             {
+                // Add an extra newline after non-inline separators (like GO) to visually separate batches.
                 lines += 1;
             }
 
-            return before
-                + Show(token)
-                + Utils.Repeat("\n", lines);
+            return before + Show(token) + Utils.Repeat("\n", lines);
+        }
+
+        /// <summary>
+        /// Returns true if the query separator should be rendered inline with the preceding statement.
+        /// Defaults to ';'. Dialects may override to customize behavior.
+        /// </summary>
+        protected virtual bool IsInlineSeparator(string separator)
+        {
+            return separator == ";";
         }
 
         protected virtual string Show(Token token)
