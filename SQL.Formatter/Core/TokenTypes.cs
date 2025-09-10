@@ -15,5 +15,6 @@
         BLOCK_COMMENT,
         NUMBER,
         PLACEHOLDER,
+        QUERY_SEPARATOR,
     }
 }

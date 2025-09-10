@@ -1,7 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace SQL.Formatter.Core
 {
+    /// <summary>
+    /// Configuration options that control formatting behaviour.
+    /// </summary>
     public class FormatConfig
     {
         public static readonly string DefaultIndent = "  ";
@@ -13,6 +17,7 @@ namespace SQL.Formatter.Core
         public readonly bool Uppercase;
         public readonly int LinesBetweenQueries;
         public readonly bool SkipWhitespaceNearBlockParentheses;
+        public readonly List<string> QuerySeparators;
 
         public FormatConfig(
             string indent,
@@ -20,7 +25,8 @@ namespace SQL.Formatter.Core
             Params parameters,
             bool uppercase,
             int linesBetweenQueries,
-            bool skipWhitespaceNearBlockParentheses)
+            bool skipWhitespaceNearBlockParentheses,
+            List<string> querySeparators)
         {
             Indent = indent;
             MaxColumnLength = maxColumnLength;
@@ -28,6 +34,46 @@ namespace SQL.Formatter.Core
             Uppercase = uppercase;
             LinesBetweenQueries = linesBetweenQueries;
             SkipWhitespaceNearBlockParentheses = skipWhitespaceNearBlockParentheses;
+            QuerySeparators = querySeparators ?? new List<string> { ";" };
+        }
+
+        /// <summary>
+        /// Returns a copy of this configuration with the specified query separators.
+        /// </summary>
+        public FormatConfig WithQuerySeparators(List<string> querySeparators)
+        {
+            return new FormatConfig(
+                Indent,
+                MaxColumnLength,
+                Parameters,
+                Uppercase,
+                LinesBetweenQueries,
+                SkipWhitespaceNearBlockParentheses,
+                querySeparators);
+        }
+
+        /// <summary>
+        /// Returns a copy of this configuration with the specified query separators.
+        /// </summary>
+        public FormatConfig WithQuerySeparators(params string[] querySeparators)
+        {
+            return WithQuerySeparators(querySeparators.ToList());
+        }
+
+        /// <summary>
+        /// Returns a copy of this configuration with additional query separators appended.
+        /// </summary>
+        public FormatConfig PlusQuerySeparators(List<string> querySeparators)
+        {
+            return WithQuerySeparators(QuerySeparators.Concat(querySeparators).ToList());
+        }
+
+        /// <summary>
+        /// Returns a copy of this configuration with additional query separators appended.
+        /// </summary>
+        public FormatConfig PlusQuerySeparators(params string[] querySeparators)
+        {
+            return PlusQuerySeparators(querySeparators.ToList());
         }
 
         public static FormatConfigBuilder Builder()
@@ -43,10 +89,9 @@ namespace SQL.Formatter.Core
             private bool _uppercase;
             private int _linesBetweenQueries;
             private bool _skipWhitespaceNearBlockParentheses;
+            private List<string> _querySeparators;
 
-            public FormatConfigBuilder()
-            {
-            }
+            public FormatConfigBuilder() { }
 
             public FormatConfigBuilder Indent(string indent)
             {
@@ -94,6 +139,24 @@ namespace SQL.Formatter.Core
                 return this;
             }
 
+            /// <summary>
+            /// Sets tokens that separate individual queries, e.g. "GO" when SQL Server dialect is selected.
+            /// </summary>
+            public FormatConfigBuilder QuerySeparators(List<string> querySeparators)
+            {
+                _querySeparators = querySeparators;
+                return this;
+            }
+
+            /// <summary>
+            /// Sets tokens that separate individual queries, e.g. "GO" when SQL Server dialect is selected.
+            /// </summary>
+            public FormatConfigBuilder QuerySeparators(params string[] querySeparators)
+            {
+                _querySeparators = querySeparators.ToList();
+                return this;
+            }
+
             public FormatConfig Build()
             {
                 return new FormatConfig(
@@ -102,7 +165,8 @@ namespace SQL.Formatter.Core
                     _parameters,
                     _uppercase,
                     _linesBetweenQueries,
-                    _skipWhitespaceNearBlockParentheses);
+                    _skipWhitespaceNearBlockParentheses,
+                    _querySeparators);
             }
         }
     }

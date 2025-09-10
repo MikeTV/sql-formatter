@@ -146,5 +146,143 @@ namespace SQL.Formatter.Test
                         { "var name2", "'var value2'"},
                     }));
         }
+
+        [Fact]
+        public void FormatsQueriesSeparatedByGo()
+        {
+            var sql = "SELECT 1\nGO\nSELECT 2";
+            var expected = "SELECT\n" +
+                            "  1\n" +
+                            "GO\n" +
+                            "SELECT\n" +
+                            "  2";
+            Assert.Equal(expected, Formatter.Format(sql));
+        }
+
+        [Fact]
+        public void FormatsMultipleQueriesSeparatedBySemicolons()
+        {
+            var sql = "SELECT 1;SELECT 2;SELECT 3";
+            var expected =
+                "SELECT\n" +
+                "  1;\n" +
+                "SELECT\n" +
+                "  2;\n" +
+                "SELECT\n" +
+                "  3";
+            Assert.Equal(expected, Formatter.Format(sql));
+        }
+
+        [Fact]
+        public void PlacesGoOnItsOwnLineEvenWithoutLineBreaks()
+        {
+            var sql = "SELECT 1 GO SELECT 2";
+            var expected =
+                "SELECT\n" +
+                "  1\n" +
+                "GO\n" +
+                "SELECT\n" +
+                "  2";
+            Assert.Equal(expected, Formatter.Format(sql));
+        }
+
+        [Fact]
+        public void HandlesLowercaseAndMixedCaseGo()
+        {
+            var sql = "SELECT 1\n" +
+                      "go\n" +
+                      "SELECT 2\n" +
+                      "Go\n" +
+                      "SELECT 3";
+            var expected =
+                "SELECT\n" +
+                "  1\n" +
+                "go\n" +
+                "SELECT\n" +
+                "  2\n" +
+                "Go\n" +
+                "SELECT\n" +
+                "  3";
+            Assert.Equal(expected, Formatter.Format(sql));
+        }
+
+        [Fact]
+        public void DoesNotTreatGoPrefixAsSeparator()
+        {
+            var sql = "SELECT 1\nGONEXT\nSELECT 2";
+            var expected =
+                "SELECT\n" +
+                "  1 GONEXT\n" +
+                "SELECT\n" +
+                "  2";
+            Assert.Equal(expected, Formatter.Format(sql));
+        }
+
+        [Fact]
+        public void IgnoresGoAndSemicolonInsideStringsAndComments()
+        {
+            var sql = "SELECT 'GO' AS label; -- GO should not split\nSELECT 1";
+            var expected =
+                "SELECT\n" +
+                "  'GO' AS label;\n" +
+                "-- GO should not split\n" +
+                "SELECT\n" +
+                "  1";
+            Assert.Equal(expected, Formatter.Format(sql));
+        }
+
+        [Fact]
+        public void SemicolonAtEndOfInputProducesNoTrailingNewline()
+        {
+            var sql = "SELECT 1;";
+            var expected =
+                "SELECT\n" +
+                "  1;";
+            Assert.Equal(expected, Formatter.Format(sql));
+        }
+
+        [Fact]
+        public void GoAtEndOfInputProducesNoTrailingNewline()
+        {
+            var sql = "SELECT 1\nGO";
+            var expected =
+                "SELECT\n" +
+                "  1\n" +
+                "GO";
+            Assert.Equal(expected, Formatter.Format(sql));
+        }
+
+        [Fact]
+        public void ConsecutiveGoSeparatorsArePreserved()
+        {
+            var sql = "SELECT 1\nGO\nGO\nSELECT 2";
+            var expected =
+                "SELECT\n" +
+                "  1\n" +
+                "GO\n" +
+                "GO\n" +
+                "SELECT\n" +
+                "  2";
+            Assert.Equal(expected, Formatter.Format(sql));
+        }
+
+        [Fact]
+        public void CustomSeparatorsDisableDefaultGoAndSemicolon()
+        {
+            var cfg = SQL.Formatter.Core.FormatConfig.Builder()
+                .QuerySeparators("END")
+                .Build();
+
+            var sql = "SELECT 1 END SELECT 2; GO SELECT 3";
+            var expected =
+                "SELECT\n" +
+                "  1\n" +
+                "END\n" +
+                "SELECT\n" +
+                "  2 ; GO\nSELECT\n" +
+                "  3";
+
+            Assert.Equal(expected, Formatter.Format(sql, cfg));
+        }
     }
 }
