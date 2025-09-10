@@ -272,7 +272,11 @@ namespace SQL.Formatter.Language
         /// </summary>
         private int _blockDepth;
 
-        public TSqlFormatter(FormatConfig cfg) : base(cfg)
+        public TSqlFormatter(FormatConfig cfg)
+            : base(cfg.QuerySeparators.Count == 1 && cfg.QuerySeparators[0].Equals(";")
+                ? cfg.WithQuerySeparators("GO", ";")
+                : cfg)
+
         {
         }
 
