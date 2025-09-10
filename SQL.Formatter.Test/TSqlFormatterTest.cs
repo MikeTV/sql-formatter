@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using SQL.Formatter.Core;
 using SQL.Formatter.Language;
 using SQL.Formatter.Test.Behavior;
 using SQL.Formatter.Test.Feature;
@@ -148,6 +149,26 @@ namespace SQL.Formatter.Test
         }
 
         [Fact]
+        public void TokenizerTreatsBeginEndAsParentheses()
+        {
+            var tokenizer = new TSqlFormatter(FormatConfig.Builder().Build()).Tokenizer();
+            var tokens = tokenizer.Tokenize("BEGIN SELECT 1 END");
+
+            Assert.Equal(TokenTypes.OPEN_PAREN, tokens.Get(0).Type);
+            Assert.Equal(TokenTypes.CLOSE_PAREN, tokens.Get(tokens.Size() - 1).Type);
+        }
+
+        [Fact]
+        public void FormatsNestedBeginEndBlocks()
+        {
+            var sql = "BEGIN BEGIN SELECT 1 END END";
+            var expected = "BEGIN\n" +
+                           "  BEGIN\n" +
+                           "    SELECT\n" +
+                           "      1\n" +
+                           "  END\n" +
+                           "END";
+
         public void FormatsQueriesSeparatedByGo()
         {
             var sql = "SELECT 1\nGO\nSELECT 2";
@@ -174,6 +195,11 @@ namespace SQL.Formatter.Test
         }
 
         [Fact]
+        public void DoesNotTreatBeginTranAsBlock()
+        {
+            var sql = "BEGIN TRAN\nSELECT 1";
+            var expected = "BEGIN TRAN\nSELECT\n  1";
+
         public void PlacesGoOnItsOwnLineEvenWithoutLineBreaks()
         {
             var sql = "SELECT 1 GO SELECT 2";
@@ -187,6 +213,68 @@ namespace SQL.Formatter.Test
         }
 
         [Fact]
+        public void DoesNotTreatBeginDistributedTranAsBlock()
+        {
+            var sql = "BEGIN DISTRIBUTED TRAN\nSELECT 1";
+            var expected = "BEGIN DISTRIBUTED TRAN\nSELECT\n  1";
+
+            Assert.Equal(expected, Formatter.Format(sql));
+
+        }
+
+        [Fact]
+        public void FormatsCreateProcedureDefinition()
+        {
+            Assert.Equal(
+                "CREATE PROCEDURE\n"
+                + "  test AS\n"
+                + "SELECT\n"
+                + "  1;",
+                Formatter.Format("CREATE PROCEDURE test AS SELECT 1;"));
+        }
+
+        [Fact]
+        public void FormatsAlterProcedureDefinition()
+        {
+            Assert.Equal(
+                "ALTER PROCEDURE\n"
+                + "  test AS\n"
+                + "SELECT\n"
+                + "  1;",
+                Formatter.Format("ALTER PROCEDURE test AS SELECT 1;"));
+
+        }
+
+        [Fact]
+        public void FormatsProcedureBodyWithSemicolon()
+        {
+            Assert.Equal(
+                "CREATE PROCEDURE\n"
+                + "  test AS BEGIN\n"
+                + "    SET\n"
+                + "      NOCOUNT ON;\n"
+                + "    SELECT\n"
+                + "      1;\n"
+                + "    SELECT\n"
+                + "      2;\n"
+                + "  END;",
+                Formatter.Format("CREATE PROCEDURE test AS BEGIN SET NOCOUNT ON; SELECT 1; SELECT 2; END;"));
+        }
+
+        [Fact]
+        public void KeepsIndentInsideParenthesesWithSemicolon()
+        {
+            var sql = "SELECT (SELECT 1; SELECT 2);";
+            var expected = "SELECT\n"
+                           + "  (\n"
+                           + "    SELECT\n"
+                           + "      1;\n"
+                           + "    SELECT\n"
+                           + "      2\n"
+                           + "  );";
+            Assert.Equal(expected, Formatter.Format(sql));
+        }
+=======
         public void HandlesLowercaseAndMixedCaseGo()
         {
             var sql = "SELECT 1\n" +

@@ -136,6 +136,21 @@ WHERE
   foo = 'bar'
 ```
 
+T-SQL `BEGIN ... END` blocks are also recognized and indented:
+
+```c#
+SqlFormatter.Of(Dialect.TSql).Format("BEGIN SELECT * FROM tbl END");
+```
+
+```sql
+BEGIN
+  SELECT
+    *
+  FROM
+    tbl
+END
+```
+
 [standard sql]: https://en.wikipedia.org/wiki/SQL:2011
 [couchbase n1ql]: http://www.couchbase.com/n1ql
 [ibm db2]: https://www.ibm.com/analytics/us/en/technology/db2/

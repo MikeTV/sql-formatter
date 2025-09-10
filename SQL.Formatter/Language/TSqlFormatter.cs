@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using SQL.Formatter.Core;
 
 namespace SQL.Formatter.Language
@@ -196,8 +197,11 @@ namespace SQL.Formatter.Language
             new List<string>{
                 "ADD",
                 "ALTER COLUMN",
+                // Recognize procedure definition clauses as independent statements
+                "ALTER PROCEDURE",
                 "ALTER TABLE",
                 "CASE",
+                "CREATE PROCEDURE",
                 "DELETE FROM",
                 "END",
                 "EXCEPT",
@@ -249,7 +253,7 @@ namespace SQL.Formatter.Language
                         StringLiteral.SingleQuote,
                         StringLiteral.BackQuote,
                         StringLiteral.Bracket})
-                .OpenParens(new List<string> { "(", "CASE" })
+                .OpenParens(new List<string> { "(", "CASE", "BEGIN" })
                 .CloseParens(new List<string> { ")", "END" })
                 .IndexedPlaceholderTypes(new List<string>())
                 .NamedPlaceholderTypes(new List<string> { "@" })
@@ -262,11 +266,88 @@ namespace SQL.Formatter.Language
                 .Build();
         }
 
+        /// <summary>
+        /// Current parentheses depth. When greater than zero, semicolons terminate statements
+        /// without resetting indentation and <c>SET</c> is treated as a newline keyword.
+        /// </summary>
+        private int _blockDepth;
+
         public TSqlFormatter(FormatConfig cfg)
             : base(cfg.QuerySeparators.Count == 1 && cfg.QuerySeparators[0].Equals(";")
                 ? cfg.WithQuerySeparators("GO", ";")
                 : cfg)
+
         {
+        }
+
+        protected override Token TokenOverride(Token token)
+        {
+            if (token.Type == TokenTypes.OPEN_PAREN)
+            {
+                var next = TokenLookAhead();
+                if (IsTransactionBegin(next))
+                {
+                    return new Token(TokenTypes.RESERVED, token.Value, token.Regex, token.WhitespaceBefore);
+                }
+            }
+
+            return token;
+        }
+
+        protected override string FormatOpeningParentheses(Token token, string query)
+        {
+            var result = base.FormatOpeningParentheses(token, query);
+            _blockDepth++;
+            return result;
+        }
+
+        protected override string FormatClosingParentheses(Token token, string query)
+        {
+            var result = base.FormatClosingParentheses(token, query);
+            if (_blockDepth > 0)
+            {
+                _blockDepth--;
+            }
+
+            return result;
+        }
+
+        protected override string FormatQuerySeparator(Token token, string query)
+        {
+            if (_blockDepth > 0)
+            {
+                return query.TrimEnd() + Show(token) + "\n";
+            }
+
+            return base.FormatQuerySeparator(token, query);
+        }
+        private bool IsTransactionBegin(Token next)
+        {
+            if (next == null)
+            {
+                return false;
+            }
+
+            var nextVal = next.Value.ToUpperInvariant();
+            if (nextVal == "TRAN" || nextVal == "TRANSACTION")
+            {
+                return true;
+            }
+
+            if (nextVal == "DISTRIBUTED")
+            {
+                var second = TokenLookAhead(2);
+                if (second != null)
+                {
+                    var secondVal = second.Value.ToUpperInvariant();
+                    if (secondVal == "TRAN" || secondVal == "TRANSACTION")
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }
