@@ -16,7 +16,13 @@ namespace SQL.Formatter.Language
         public static readonly Dialect Redshift = new Dialect(cfg => new RedshiftFormatter(cfg), "Redshift");
         public static readonly Dialect SparkSql = new Dialect(cfg => new SparkSqlFormatter(cfg), "SparkSql", "spark");
         public static readonly Dialect StandardSql = new Dialect(cfg => new StandardSqlFormatter(cfg), "StandardSql", "sql");
-        public static readonly Dialect TSql = new Dialect(cfg => new TSqlFormatter(cfg), "TSql");
+        public static readonly Dialect TSql = new Dialect(cfg =>
+        {
+            var cfgWithGo = cfg.QuerySeparators.Any()
+                ? cfg
+                : cfg.WithQuerySeparators("GO");
+            return new TSqlFormatter(cfgWithGo);
+        }, "TSql");
 
         public static IEnumerable<Dialect> Values
         {
