@@ -8,4 +8,4 @@
 - `FormatQuerySeparator` resets indentation and handles semicolons and custom query delimiters.
 
 ## Dialects
-- `Dialect.TSql` uses `WithQuerySeparators` to insert `"GO"` when no query separators are supplied.
+- `TSqlFormatter` injects `GO` alongside the default semicolon when no custom query separators are supplied.

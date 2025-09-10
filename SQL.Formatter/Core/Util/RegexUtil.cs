@@ -44,6 +44,25 @@ namespace SQL.Formatter.Core.Util
             return "(?i)" + "^(" + reservedWordsPattern + ")\\b";
         }
 
+        public static string CreateSeparatorRegex(JSLikeList<string> separators)
+        {
+            if (separators.IsEmpty())
+            {
+                return "^\b$";
+            }
+
+            var pattern = string.Join("|",
+                Utils.SortByLengthDesc(separators)
+                    .Map(s =>
+                    {
+                        var escaped = EscapeRegExp(s);
+                        return char.IsLetterOrDigit(s.Last()) ? escaped + "\\b" : escaped;
+                    })
+                    .ToList());
+
+            return "(?i)^(" + pattern + ")";
+        }
+
         public static string CreateWordRegex(JSLikeList<string> specialChars)
         {
             return "^([\\p{L}\\p{Nd}\\p{Mn}\\p{Pc}"

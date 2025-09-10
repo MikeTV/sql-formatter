@@ -109,7 +109,7 @@ namespace SQL.Formatter.Core
                 {
                     formattedQuery = FormatWithoutSpaces(token, formattedQuery);
                 }
-                else if (token.Type == TokenTypes.QUERY_SEPARATOR || token.Value.Equals(";"))
+                else if (token.Type == TokenTypes.QUERY_SEPARATOR)
                 {
                     formattedQuery = FormatQuerySeparator(token, formattedQuery);
                 }
@@ -255,18 +255,15 @@ namespace SQL.Formatter.Core
         protected virtual string FormatQuerySeparator(Token token, string query)
         {
             _indentation.ResetIndentation();
-            var before = token.Type == TokenTypes.QUERY_SEPARATOR
-                ? AddNewline(query)
-                : query.TrimEnd();
+            var isSemicolon = token.Value.Equals(";");
+            var before = isSemicolon ? query.TrimEnd() : AddNewline(query);
             var lines = _cfg.LinesBetweenQueries == default ? 1 : _cfg.LinesBetweenQueries;
-            if (token.Type == TokenTypes.QUERY_SEPARATOR)
+            if (!isSemicolon)
             {
                 lines += 1;
             }
 
-            return before
-                + Show(token)
-                + Utils.Repeat("\n", lines);
+            return before + Show(token) + Utils.Repeat("\n", lines);
         }
 
         protected virtual string Show(Token token)

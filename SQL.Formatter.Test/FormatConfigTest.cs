@@ -7,6 +7,17 @@ namespace SQL.Formatter.Test
     public class FormatConfigTest
     {
         [Fact]
+        public void WithQuerySeparatorsReplacesDefaultSemicolon()
+        {
+            var cfg = FormatConfig.Builder()
+                .Build()
+                .WithQuerySeparators("GO");
+
+            Assert.Single(cfg.QuerySeparators);
+            Assert.Equal("GO", cfg.QuerySeparators[0]);
+        }
+
+        [Fact]
         public void WithQuerySeparatorsReplacesExisting()
         {
             var cfg = FormatConfig.Builder()
