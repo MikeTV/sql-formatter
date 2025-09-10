@@ -239,9 +239,6 @@ namespace SQL.Formatter.Language
                 "FULL OUTER JOIN",
                 "CROSS JOIN"};
 
-        /// <summary>
-        /// Builds the T-SQL dialect configuration, including BEGIN..END block delimiters.
-        /// </summary>
         public override DialectConfig DoDialectConfig()
         {
             return DialectConfig.Builder()
@@ -269,6 +266,12 @@ namespace SQL.Formatter.Language
                 .Build();
         }
 
+        /// <summary>
+        /// Current parentheses depth. When greater than zero, semicolons terminate statements
+        /// without resetting indentation and <c>SET</c> is treated as a newline keyword.
+        /// </summary>
+        private int _blockDepth;
+
         public TSqlFormatter(FormatConfig cfg) : base(cfg)
         {
         }
@@ -284,9 +287,41 @@ namespace SQL.Formatter.Language
                 }
             }
 
+            if (_blockDepth > 0 && token.Type == TokenTypes.RESERVED_TOP_LEVEL && token.Value.Equals("SET", StringComparison.OrdinalIgnoreCase))
+            {
+                return new Token(TokenTypes.RESERVED_NEWLINE, token.Value, token.Regex, token.WhitespaceBefore);
+            }
+
             return token;
         }
 
+        protected override string FormatOpeningParentheses(Token token, string query)
+        {
+            var result = base.FormatOpeningParentheses(token, query);
+            _blockDepth++;
+            return result;
+        }
+
+        protected override string FormatClosingParentheses(Token token, string query)
+        {
+            var result = base.FormatClosingParentheses(token, query);
+            if (_blockDepth > 0)
+            {
+                _blockDepth--;
+            }
+
+            return result;
+        }
+
+        protected override string FormatQuerySeparator(Token token, string query)
+        {
+            if (_blockDepth > 0)
+            {
+                return query.TrimEnd() + Show(token) + "\n";
+            }
+
+            return base.FormatQuerySeparator(token, query);
+        }
         private bool IsTransactionBegin(Token next)
         {
             if (next == null)

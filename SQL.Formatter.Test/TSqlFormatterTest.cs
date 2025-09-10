@@ -213,5 +213,32 @@ namespace SQL.Formatter.Test
                 Formatter.Format("ALTER PROCEDURE test AS SELECT 1;"));
 
         }
+
+        [Fact]
+        public void FormatsProcedureBodyWithSemicolon()
+        {
+            Assert.Equal(
+                "CREATE PROCEDURE\n"
+                + "  test AS BEGIN\n"
+                + "    SET NOCOUNT ON;\n"
+                + "    SELECT\n"
+                + "      1;\n"
+                + "  END;",
+                Formatter.Format("CREATE PROCEDURE test AS BEGIN SET NOCOUNT ON; SELECT 1; END;"));
+        }
+
+        [Fact]
+        public void KeepsIndentInsideParenthesesWithSemicolon()
+        {
+            var sql = "SELECT (SELECT 1; SELECT 2);";
+            var expected = "SELECT\n"
+                           + "  (\n"
+                           + "    SELECT\n"
+                           + "      1;\n"
+                           + "    SELECT\n"
+                           + "      2\n"
+                           + "  );";
+            Assert.Equal(expected, Formatter.Format(sql));
+        }
     }
 }
