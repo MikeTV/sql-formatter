@@ -278,18 +278,13 @@ namespace SQL.Formatter.Language
 
         protected override Token TokenOverride(Token token)
         {
-            if (token.Type == TokenTypes.OPEN_PAREN && token.Value.Equals("BEGIN", StringComparison.OrdinalIgnoreCase))
+            if (token.Type == TokenTypes.OPEN_PAREN)
             {
                 var next = TokenLookAhead();
                 if (IsTransactionBegin(next))
                 {
                     return new Token(TokenTypes.RESERVED, token.Value, token.Regex, token.WhitespaceBefore);
                 }
-            }
-
-            if (_blockDepth > 0 && token.Type == TokenTypes.RESERVED_TOP_LEVEL && token.Value.Equals("SET", StringComparison.OrdinalIgnoreCase))
-            {
-                return new Token(TokenTypes.RESERVED_NEWLINE, token.Value, token.Regex, token.WhitespaceBefore);
             }
 
             return token;

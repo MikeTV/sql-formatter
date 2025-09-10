@@ -220,11 +220,14 @@ namespace SQL.Formatter.Test
             Assert.Equal(
                 "CREATE PROCEDURE\n"
                 + "  test AS BEGIN\n"
-                + "    SET NOCOUNT ON;\n"
+                + "    SET\n"
+                + "      NOCOUNT ON;\n"
                 + "    SELECT\n"
                 + "      1;\n"
+                + "    SELECT\n"
+                + "      2;\n"
                 + "  END;",
-                Formatter.Format("CREATE PROCEDURE test AS BEGIN SET NOCOUNT ON; SELECT 1; END;"));
+                Formatter.Format("CREATE PROCEDURE test AS BEGIN SET NOCOUNT ON; SELECT 1; SELECT 2; END;"));
         }
 
         [Fact]
