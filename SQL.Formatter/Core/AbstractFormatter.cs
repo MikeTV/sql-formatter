@@ -255,15 +255,18 @@ namespace SQL.Formatter.Core
         protected virtual string FormatQuerySeparator(Token token, string query)
         {
             _indentation.ResetIndentation();
-            var isSemicolon = token.Value.Equals(";");
-            var before = isSemicolon ? query.TrimEnd() : AddNewline(query);
+            var before = token.Type == TokenTypes.QUERY_SEPARATOR
+               ? AddNewline(query)
+               : query.TrimEnd();
             var lines = _cfg.LinesBetweenQueries == default ? 1 : _cfg.LinesBetweenQueries;
-            if (!isSemicolon)
+            if (token.Type == TokenTypes.QUERY_SEPARATOR)
             {
                 lines += 1;
             }
 
-            return before + Show(token) + Utils.Repeat("\n", lines);
+            return before
+                + Show(token)
+                + Utils.Repeat("\n", lines);
         }
 
         protected virtual string Show(Token token)
