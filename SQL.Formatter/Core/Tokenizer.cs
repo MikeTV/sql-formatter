@@ -83,7 +83,7 @@ namespace SQL.Formatter.Core
                     RegexUtil.CreateStringPattern(new JSLikeList<string>(cfg.StringTypes)));
 
             _querySeparatorPattern = querySeparators != null && querySeparators.Any()
-                ? new Regex(RegexUtil.CreateReservedWordRegex(new JSLikeList<string>(querySeparators)))
+                ? new Regex(RegexUtil.CreateQuerySeparatorRegex(new JSLikeList<string>(querySeparators)))
                 : null;
         }
 

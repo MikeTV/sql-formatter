@@ -34,7 +34,7 @@ namespace SQL.Formatter.Core
             Uppercase = uppercase;
             LinesBetweenQueries = linesBetweenQueries;
             SkipWhitespaceNearBlockParentheses = skipWhitespaceNearBlockParentheses;
-            QuerySeparators = querySeparators ?? new List<string>();
+            QuerySeparators = querySeparators ?? new List<string> { ";" };
         }
 
         /// <summary>
@@ -89,7 +89,7 @@ namespace SQL.Formatter.Core
             private bool _uppercase;
             private int _linesBetweenQueries;
             private bool _skipWhitespaceNearBlockParentheses;
-            private List<string> _querySeparators = new List<string>(); // Use when SQL Server dialect is selected
+            private List<string> _querySeparators;
 
             public FormatConfigBuilder() { }
 
